@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from modules import MYRT_net
-
 from tqdm import tqdm
 #data loader
 import torch.utils.data as Data
@@ -10,6 +9,13 @@ import numpy as np
 import cv2
 import os
 import random
+
+
+#设置超参数
+epoch_num = 100
+batch_size = 20
+learning_rate = 0.0001
+
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
         nn.init.xavier_uniform_(m.weight)
@@ -47,14 +53,17 @@ class MYRT_dataset(Data.Dataset):
     
     def __len__(self):
         return len(self.imgs)
-    
-# data loader
-root = '/home/orange/Code/MYAI_Space/Datasets/CAT_01/image/'
-data_root = '/home/orange/Code/MYAI_Space/Datasets/CAT_01/points/'
-ds = MYRT_dataset(root,data_root)
-dl = Data.DataLoader(ds, batch_size=20, shuffle=True)
 
-net = MYRT_net.MYRT_net1()
+
+# data loader
+root = 'Datasets/CAT_01/image/'
+data_root = 'Datasets/CAT_01/points/'
+ds = MYRT_dataset(root,data_root)
+ds_test = MYRT_dataset('Datasets/test/image/', 'Datasets/test/points/')
+dl = Data.DataLoader(ds, batch_size=batch_size, shuffle=True)
+dl_test = Data.DataLoader(ds_test, batch_size=5, shuffle=True)
+
+net = MYRT_net.MYRT_net()
 
 
 
@@ -69,7 +78,7 @@ print('device:', device)
 net = net.to(device)  # 将模型移动到指定的设备上
 
 # 随机初始化模型训练参数
-net.apply(weights_init)
+#net.apply(weights_init)
 '''
 net.module1.load_state_dict(torch.load('./models/MYRT_net2_31.pth'))
 
@@ -78,7 +87,7 @@ for param in net.module1.parameters():
 '''
 
 
-#net.load_state_dict(torch.load('./models/MYRT_net5_12.pth'))
+net.load_state_dict(torch.load('./models/MYRT_net5_2.pth'))
 
 test_img = cv2.imread('猫.jpg')
 test_img1 = test_img.copy()
@@ -87,6 +96,7 @@ test_img = cv2.resize(test_img, (256, 256))
 test_img = test_img / 255.0
 
 for epoch in range(1000):
+    net.train()
     for i, (img, points) in tqdm(enumerate(dl)):
         img = img.to(device, dtype=torch.float32)  # 将输入数据移动到指定的设备上，并转换为浮点类型
         points = points.to(device, dtype=torch.float32)  # 将目标数据移动到指定的设备上，并转换为浮点类型
@@ -98,7 +108,7 @@ for epoch in range(1000):
         loss.backward()#反向传播
         optimizer.step()#更新参数
         
-        if i % 10 == 0:
+        if i % 100 == 0:
             print('epoch: %d, step: %d, loss: %f' % (epoch, i, loss))
             testout = net(torch.tensor(test_img).permute(2, 0, 1).unsqueeze(0).float().to(device))
             #绘制关键点
@@ -115,9 +125,19 @@ for epoch in range(1000):
 
     # save model
     if epoch % 1 == 0:
+        #验证模型
+        net.eval()
+        test_loss = 0
+        for i, (img, points) in tqdm(enumerate(dl_test)):
+            img = img.to(device, dtype=torch.float32)
+            points = points.to(device, dtype=torch.float32)
+            img=img.permute(0,3,1,2)
+            output = net(img)
+            loss = criterion(output, points)
+            test_loss += loss
+        print('epoch: %d, test_loss: %f' % (epoch, test_loss/50))
+           
         torch.save(net.state_dict(), './models/MYRT_net5_'+str(epoch)+".pth")  # 保存模型的参数，而不是整个模型
-        print("output:",output)
-        print("points:",points)
         print('model has been saved')
 
 

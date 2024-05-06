@@ -3,10 +3,11 @@ from modules import MYRT_net
 import cv2 
 
 img = cv2.imread('Datasets/CAT_01/image/00000296_027.jpg')
+#img = cv2.imread("猫.jpg")
 img1 = img.copy()
 
 net  = MYRT_net.MYRT_net1()
-net.load_state_dict(torch.load('./models/MYRT_net5_17.pth'))
+net.load_state_dict(torch.load('./models/MYRT_net5_3.pth'))
 shape = img.shape
 img = cv2.resize(img, (256, 256))
 img = img / 255.0

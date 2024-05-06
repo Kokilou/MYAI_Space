@@ -20,6 +20,15 @@ class MYRT_net(nn.Module):
         self.conv8 = m.Dectectobj()
         self.conv9 = m.Dectectobj()
         
+        self.fc1 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc2 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc3 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc4 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc5 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc6 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc7 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc8 = m.FCBlock(16,2,activateFuc=nn.Softplus())
+        self.fc9 = m.FCBlock(16,2,activateFuc=nn.Softplus())
         
     def forward(self, x):
         x1 = self.conv1(x)
@@ -31,70 +40,32 @@ class MYRT_net(nn.Module):
         x7 = self.conv7(x)
         x8 = self.conv8(x)
         x9 = self.conv9(x)
-        x = torch.cat((x1, x2, x3, x4, x5, x6, x7, x8, x9), 1)
+        point1 = torch.cat((x2, x3, x4, x5, x6, x7, x8, x9), 1)
+        point2 = torch.cat((x1, x3, x4, x5, x6, x7, x8, x9), 1)
+        point3 = torch.cat((x1, x2, x4, x5, x6, x7, x8, x9), 1)
+        point4 = torch.cat((x1, x2, x3, x5, x6, x7, x8, x9), 1)
+        point5 = torch.cat((x1, x2, x3, x4, x6, x7, x8, x9), 1)
+        point6 = torch.cat((x1, x2, x3, x4, x5, x7, x8, x9), 1)
+        point7 = torch.cat((x1, x2, x3, x4, x5, x6, x8, x9), 1)
+        point8 = torch.cat((x1, x2, x3, x4, x5, x6, x7, x9), 1)
+        point9 = torch.cat((x1, x2, x3, x4, x5, x6, x7, x8), 1)
         
-                    
+        point1 = self.fc1(point1)
+        point2 = self.fc2(point2)
+        point3 = self.fc2(point3)
+        point4 = self.fc2(point4)
+        point5 = self.fc2(point5)
+        point6 = self.fc2(point6)
+        point7 = self.fc2(point7)
+        point8 = self.fc2(point8)
+        point9 = self.fc2(point9)       
+        x = torch.cat((point1, point2, point3, point4, point5, point6, point7, point8,point9), 1)
+             
     
         return x
 
         
 
-class MYRT_net1(nn.Module):
-    def __init__(self):
-        super(MYRT_net1, self).__init__()
-        self.module1 = MYRT_net()
-        self.fc1 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc2 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc3 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc4 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc5 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc6 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc7 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc8 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc9 = m.FCBlock(18, 2,activateFuc=nn.Softplus())
-        self.fc10 = nn.Linear(18*2,18)
-        
-        self.conv1 = nn.Conv2d(3, 16, 3, 1)
-        self.conv2 = nn.Conv2d(16, 32, 3, 1)
-        self.conv3 = nn.Conv2d(32, 64, 3, 1)
-        
-        self.pool1 = nn.MaxPool2d(2, 2)
-        self.pool2 = nn.MaxPool2d(4, 4)
-        
-        self.activateFuc = nn.Softplus()
-        
-        self.fc11 = nn.Linear(64*7*7, 64) 
-        self.fc12 = nn.Linear(64,18)       
-    def forward(self, x):
-        y = self.conv1(x)
-        y = self.activateFuc(y)
-        y = self.pool1(y)#16*128*128
-        y = self.conv2(y)
-        y = self.activateFuc(y)
-        y = self.pool2(y) #32*32*32
-        y = self.conv3(y)
-        y = self.activateFuc(y)
-        y = self.pool2(y) #64*8*8
-        y = y.reshape(y.size(0), -1)
-        y = self.fc11(y)
-        y = self.fc12(y)
-        
-        x = self.module1(x)
-        x1 = self.fc1(x)
-        x2 = self.fc2(x)
-        x3 = self.fc3(x)
-        x4 = self.fc4(x)
-        x5 = self.fc5(x)
-        x6 = self.fc6(x)
-        x7 = self.fc7(x)
-        x8 = self.fc8(x)
-        x9 = self.fc9(x)
-        x = torch.cat((x1, x2, x3, x4, x5, x6, x7, x8, x9,y), 1)
-        x = self.fc10(x)
-        
-        
-        
-        return x
     
 
     

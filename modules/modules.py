@@ -206,9 +206,11 @@ class Dectectobj(nn.Module):
         self.c2 = ConvBlock(16, 32, 3, 1)
         self.c3 = ConvBlock(32, 32, 3, 1)
         self.c4 = ConvBlock(32, 16, 3, 1)
+        self.c5 = ConvBlock(16, 8, 3, 1)
 
-        self.fc1 = FCBlock(8*8*16, 8*8, activateFuc=nn.Softplus())
-        self.fc2 = FCBlock(8*8, 2, activateFuc=nn.Softplus())
+        self.fc1 = FCBlock(8*8*8, 64, activateFuc=nn.Softplus())
+        self.fc2 = FCBlock(64, 32, activateFuc=nn.Softplus())
+        self.fc3 = FCBlock(32, 2, activateFuc=nn.Softplus())
         
         
         
@@ -218,14 +220,14 @@ class Dectectobj(nn.Module):
         x = self.c2(x) # 128*128*16 -> 64*64*32
         x = self.c3(x) # 64*64*32 -> 32*32*32
         x = self.c4(x) # 32*32*32 -> 16*16*16
-        
-        x = nn.MaxPool2d(2, 2)(x) # 16*16*16 -> 8*8*16
+        x = self.c5(x)
         
         
         x = x.reshape(x.size(0), -1)
         x = self.fc1(x)
         #x = self.dropout(x)
         x = self.fc2(x)
+        x = self.fc3(x)
         
         
         return x
